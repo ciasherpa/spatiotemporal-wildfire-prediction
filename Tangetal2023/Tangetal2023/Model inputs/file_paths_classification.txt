@@ -1,0 +1,3 @@
+path_input: ../Model inputs/data/
+input_location: ../Model inputs/data/Pixel_Location_30pct_1deg.csv
+path_out: ../Model outputs/

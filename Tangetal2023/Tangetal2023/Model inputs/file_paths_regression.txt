@@ -1,0 +1,4 @@
+path_input: ../Model outputs/
+input_location: ../Model inputs/data/Pixel_Location_30pct_1deg.csv
+path_error: ../Model outputs/
+path_out: ../Model outputs/
