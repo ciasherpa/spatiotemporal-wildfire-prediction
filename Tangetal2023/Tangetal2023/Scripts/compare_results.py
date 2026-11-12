@@ -7,7 +7,7 @@ import pandas as pd
 from common import OUTPUT_DIR
 
 parts = []
-for f in ['rf_results.csv', 'convlstm_results.csv']:
+for f in ['rf_results.csv', 'convlstm_results.csv', 'experiments_results.csv']:
     p = os.path.join(OUTPUT_DIR, f)
     if os.path.exists(p):
         parts.append(pd.read_csv(p))
