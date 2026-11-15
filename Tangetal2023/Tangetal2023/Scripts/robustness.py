@@ -4,13 +4,10 @@ robustness.py  --  is the fire-history gain stable, or did we get lucky?
 Repeats the key comparison from experiments.py many times:
   - several random SEEDS (tree models and boosting change a little with the seed)
   - several TIME SPLITS (train on the first 60% / 70% / 80% of months, test on the next block)
-For each run it records average precision (AP). The baseline is the Random Forest on last-month
-climate (feature set A), the closest thing to the parent paper's approach; each other model is
-compared with that baseline using the SAME seed and the SAME split.
 
-Run (from the Scripts folder, after experiments.py is there):  python robustness.py
-Takes roughly 5-15 minutes.
-Output: robustness_runs.csv (every single run), robustness_gain_summary.csv
+For each run it records average precision (AP). 
+The baseline is the Random Forest on last-month climate (feature set A), the closest thing to the parent paper's approach; each other model is
+compared with that baseline using the SAME seed and the SAME split.
 """
 import os
 import sys
