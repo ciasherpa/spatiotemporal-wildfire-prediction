@@ -1,11 +1,13 @@
 """
-new_ignitions.py  --  does the fire-history gain hold for NEW fires?
+overall question: does the fire-history gain hold for NEW fires?
 
 experiments.py scores every test row. But a lot of "fire last month -> fire this month" may just be
-a fire that kept burning. Here we score ONLY the test rows where there was NO fire last month, so a
+a fire that kept burning. 
+
+This code scores ONLY the test rows where there was NO fire last month, so a
 continuing fire cannot help the model. Same data, same models, same train/test split as experiments.py.
 
-Run (from the Scripts folder):  python new_ignitions.py      (takes a few minutes)
+Run (from the Scripts folder): python new_ignitions.py
 Output: experiments_new_ignitions.csv
 """
 import os
@@ -73,7 +75,6 @@ def main():
     print("=== New fires only: models ranked by average precision "
           "(gain columns = improvement over the baseline; interval from resampling test months) ===")
     print(res.round(3).head(15).to_string(index=False))
-
 
 if __name__ == '__main__':
     main()

@@ -1,14 +1,15 @@
 """
-robustness.py  --  is the fire-history gain stable, or did we get lucky?
+is the fire-history gain stable, or did we get lucky?
 
 Repeats the key comparison from experiments.py many times:
-  - several random SEEDS (tree models and boosting change a little with the seed)
-  - several TIME SPLITS (train on the first 60% / 70% / 80% of months, test on the next block)
+It uses several random SEEDS (tree models and boosting change a little with the seed)
+It uses several TIME SPLITS (train on the first 60% / 70% / 80% of months, test on the next block)
 
-For each run it records average precision (AP). 
-The baseline is the Random Forest on last-month climate (feature set A), the closest thing to the parent paper's approach; each other model is
+For each run it records average precision 
+The baseline is the Random Forest on last-month climate (feature set A) -each other model is
 compared with that baseline using the SAME seed and the SAME split.
 """
+
 import os
 import sys
 import numpy as np
@@ -19,14 +20,13 @@ from sklearn.metrics import average_precision_score
 import experiments as E
 from common import load_data, SEQ_LEN, OUTPUT_DIR
 
-# ---------------- settings you can play with ----------------
+#settings
 SEEDS = [1, 2, 3]
-TRAIN_FRACS = [0.6, 0.7, 0.8]      # 0.8 is the same split experiments.py uses
+TRAIN_FRACS = [0.6, 0.7, 0.8] #0.8 is the same split experiments.py uses
 FEATURE_SETS = ['A last-month climate',
                 'C +season +fire history',
                 'D +season +fire history +neighbours']
 REF_MODEL, REF_SET = 'RF', 'A last-month climate'
-# ------------------------------------------------------------
 
 
 def main():
@@ -60,7 +60,7 @@ def main():
             Xtr = train[cols].fillna(med).fillna(0)
             Xte = test[cols].fillna(med).fillna(0)
             for seed in SEEDS:
-                E.SEED = seed                      # make_models reads this when it builds the models
+                E.SEED = seed #make_models reads this when it builds the models
                 for mname, proto in E.make_models(train['fire'].mean()).items():
                     p = E.fit_predict(mname, clone(proto), Xtr, train['fire'], Xte)
                     runs.append(dict(split=label, seed=seed, model=mname, features=fs_name,
@@ -70,7 +70,7 @@ def main():
     res = pd.DataFrame(runs)
     res.to_csv(os.path.join(OUTPUT_DIR, 'robustness_runs.csv'), index=False)
 
-    # ---- table 1: AP as mean +- spread over seeds, one column per time split
+    #table 1: AP as mean +- spread over seeds, one column per time split
     g = res.groupby(['model', 'features', 'split'])['ap'].agg(['mean', 'std']).reset_index()
     g['txt'] = [f"{m:.3f}+-{(0 if np.isnan(s) else s):.3f}" for m, s in zip(g['mean'], g['std'])]
     table = g.pivot(index=['model', 'features'], columns='split', values='txt')
@@ -78,7 +78,7 @@ def main():
     print("(Persistence = 'fire next month = fire last month'; it has no seeds)")
     print(table.to_string())
 
-    # ---- table 2: gain over the baseline, same seed and same split
+    #table 2: gain over the baseline, same seed and same split
     ref = res[(res['model'] == REF_MODEL) & (res['features'] == REF_SET)] \
         .set_index(['split', 'seed'])['ap']
     cmp_ = res[res['model'] != 'Persistence'].copy()

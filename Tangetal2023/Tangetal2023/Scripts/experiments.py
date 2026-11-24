@@ -1,9 +1,9 @@
 """
-experiments.py  --  more models + smarter features, evaluated the SAME way as rf_baseline.py
+contains more models and smarter features, evaluated the SAME way as rf_baseline.py
 and convlstm_v2.py (same months, same rows, via common.py).
 
-Run:  python experiments.py                (uses CSV_PATH from common.py)
-      python experiments.py path/to/data.csv
+Run: python experiments.py
+     python experiments.py path/to/data.csv
 
 WHAT IT TESTS
   Reference points (any real model has to beat these):
@@ -11,21 +11,22 @@ WHAT IT TESTS
     - Climatology (month)     : average fire rate of that calendar month in the training years
     - Climatology (location)  : average fire rate of that location in the training years
   Feature sets (each adds to the one before):
-    A  last month's climate/vegetation (what rf_baseline.py's baseline uses)
-    B  + time of year (sin/cos of the target month) -- rf_baseline.py never tells the model the season
-    C  + fire history (fire 1, 2, 3 and 12 months ago, fires in the last 3 months)
-    D  + neighbours (nearby locations' climate AND recent fires, as in rf_baseline.py)
+    A last month's climate/vegetation (what rf_baseline.py's baseline uses)
+    B + time of year (sin/cos of the target month) -- rf_baseline.py never tells the model the season
+    C + fire history (fire 1, 2, 3 and 12 months ago, fires in the last 3 months)
+    D + neighbours (nearby locations' climate AND recent fires, as in rf_baseline.py)
   Models:
     Logistic regression, Random Forest, Extra Trees, HistGradientBoosting,
     plus LightGBM and XGBoost if they are installed.
 
-HOW IT IS SCORED (and why it differs a little from rf_baseline.py)
+HOW IT IS SCORED
   - The fire/no-fire cutoff is picked on a VALIDATION slice (the last VAL_FRAC of the training
     months), never on the test set. Picking the "best F1 cutoff" on the test set flatters every model.
   - avg_precision (area under the precision-recall curve) needs no cutoff and is the main number.
   - ap_lo / ap_hi: 95% interval from resampling whole test MONTHS (rows in the same month are
     not independent, so resampling single rows would give intervals that are too narrow).
     If two models' intervals overlap heavily, treat them as tied.
+
 Output: experiments_results.csv (same column names compare_results.py reads)
         experiments_importance.csv (tree-model feature importances for the richest feature set)
 """
@@ -58,17 +59,16 @@ except Exception:
 
 warnings.filterwarnings('ignore')
 
-# ---------------- settings you can play with ----------------
+#settings
 NEIGHBOR_RADIUS = 2      # same meaning as in rf_baseline.py
 FIRE_LAGS = (1, 2, 3, 12)  # months back to look at the fire label itself
 VAL_FRAC = 0.15          # last 15% of training months -> used only to pick the cutoff
 N_BOOT = 200             # month-resamples for the avg_precision interval
 THRESHOLD_GRID = np.arange(0.05, 0.96, 0.05)
 SEED = 1
-# ------------------------------------------------------------
 
 
-# ---------------------------------------------------------------- features
+#features
 def build_features(df):
     feat = df[['loc', 't', 'fire', 'Month']].copy()
 
@@ -94,9 +94,9 @@ def feature_sets():
             'C +season +fire history': C, 'D +season +fire history +neighbours': D}
 
 
-# ---------------------------------------------------------------- models
+#models
 def make_models(pos_rate):
-    spw = (1 - pos_rate) / max(pos_rate, 1e-6)   # "a missed fire counts this much more"
+    spw = (1 - pos_rate) / max(pos_rate, 1e-6)   #missed fire counts this much more
     models = {
         'LogReg': make_pipeline(StandardScaler(),
                                 LogisticRegression(max_iter=2000, class_weight='balanced')),
@@ -141,7 +141,7 @@ def baseline_probs(kind, fit, ev):
     raise ValueError(kind)
 
 
-# ---------------------------------------------------------------- scoring
+#scoring
 def choose_threshold(y_val, p_val):
     if y_val.sum() == 0:
         return 0.5
@@ -182,9 +182,6 @@ def month_bootstrap_ap(y, p, months, n_boot=N_BOOT, seed=SEED):
 
 
 def paired_month_bootstrap(y, p_ref, p_new, months, n_boot=N_BOOT, seed=SEED):
-    """Resample test months, score BOTH models on the same resample, look at the AP difference.
-    Because both see the same months, this is a much sharper comparison than eyeballing two
-    separate intervals. Returns (mean diff, 2.5%, 97.5%, share of resamples where new > ref)."""
     rng = np.random.default_rng(seed)
     uniq = np.unique(months)
     groups = {m: np.where(months == m)[0] for m in uniq}
@@ -202,7 +199,7 @@ def paired_month_bootstrap(y, p_ref, p_new, months, n_boot=N_BOOT, seed=SEED):
     return diffs.mean(), lo, hi, (diffs > 0).mean()
 
 
-# ---------------------------------------------------------------- main
+#main
 def main():
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     df, n_time, n_rows, n_cols, cutoff_t = load_data(sys.argv[1]) if len(sys.argv) > 1 else load_data()
@@ -238,13 +235,13 @@ def main():
         print(f"{name:55s} AP={row['avg_precision']:.3f} [{lo:.3f}-{hi:.3f}]  "
               f"P={row['precision']:.2f} R={row['recall']:.2f} F1={row['f1']:.3f} (cut {row['threshold']})")
 
-    # --- reference points
+    #reference points
     for label, kind in [('Persistence (fire last month)', 'persistence'),
                         ('Climatology (calendar month)', 'clim_month'),
                         ('Climatology (location)', 'clim_loc')]:
         record(label, 0, baseline_probs(kind, fit_part, val_part), baseline_probs(kind, train, test))
 
-    # --- models x feature sets
+    #models and feature sets
     importance = {}
     sets = feature_sets()
     last_set = list(sets)[-1]
@@ -272,7 +269,7 @@ def main():
     out.to_csv(path, index=False)
     print(f"\nSaved: {path}")
 
-    # --- paired comparison against the closest thing to the parent paper's approach
+    #paired comparison against the closest thing to the parent paper's approach
     ref_name = f'RF | {list(sets)[0]}'
     if ref_name in test_probs:
         rows = []
