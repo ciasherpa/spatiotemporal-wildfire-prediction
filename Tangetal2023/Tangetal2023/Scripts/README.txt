@@ -63,6 +63,8 @@ Standardizes data, splits train/test, applies SMOTE, trains LogReg / Random Fore
 command: python regression_demo.py	
 Predicts burned area for locations the classifier flagged as fire, with 15 regression models plus error-correction	
 
+command: python common.py	
+
 command: python rf_baseline.py	
 Random Forest ablation: last month only, + temporal, + spatial, + both
 
