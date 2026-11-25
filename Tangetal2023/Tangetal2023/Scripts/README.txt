@@ -25,6 +25,15 @@ No GPU needed.
 git clone https://github.com/<YOUR-USERNAME>/<YOUR-REPO>.git
 cd <YOUR-REPO>
 
+or
+
+Download as a ZIP file:
+Open the GitHub repository.
+Click the green Code button.
+Select Download ZIP.
+Extract the downloaded ZIP file.
+Open the extracted spatiotemporal-wildfire-prediction folder in VS Code.
+
 # Step 2: Create a clean virtual environment
 
 Windows (Command Prompt or PowerShell):
