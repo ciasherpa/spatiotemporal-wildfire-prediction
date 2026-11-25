@@ -141,3 +141,7 @@ xlwt==1.3.0
 yarg==0.1.9
 zict @ file:///home/conda/feedstock_root/build_artifacts/zict_1651156074437/work
 zipp @ file:///home/conda/feedstock_root/build_artifacts/zipp_1666647772197/work
+scikit-learn
+pandas
+lightgbm
+tensorflow
